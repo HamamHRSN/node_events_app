@@ -11,8 +11,11 @@
                         <p class="card-text"><%= event.description %></p>
                         <p class="card-text"><%= event.location %></p>
                         <p><span class="badge badge-secondary"><%= event.date.toDateString() %></span></p>
+                        
+                        <% if ((user) && (user.id == event.user_id)) { %>
                         <a href="<%= '/events/edit/' + event.id %>" class="btn btn-primary">Edit</a>
                         <button class="btn btn-danger" onclick="deleteEvent()" id="deleteBtn" data-id="<%= event.id %>">Delete</button>
+                        <% } %>
                     </div>
                 </div>              
              </div>

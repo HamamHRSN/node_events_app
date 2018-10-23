@@ -4,6 +4,17 @@ const moment = require('moment');
 const router = express.Router();
 const Event = require('../models/Event');
 
+
+// middleware to check if user isAuthenticated   logged in 
+
+isAuthenticated = (req, res, next) => {
+    if (req.isAuthenticated()) {
+        return next();
+    } else {
+        res.redirect('/users/login');
+    }
+};
+
 moment().format();
 // route to home events
 router.get('/', (req, res) => {
@@ -24,7 +35,7 @@ Event.find({}, (err, events) => {
 });
 
 // route to create events
-router.get('/create', (req, res) => {
+router.get('/create', isAuthenticated, (req, res) => {
    res.render('event/create', {
        errors: req.flash('errors')
    });
@@ -51,6 +62,7 @@ router.post('/create', [
             description: req.body.description,
             location: req.body.location,
             date: req.body.date,
+            user_id: req.user.id,
             created_at: Date.now()
         });
     
@@ -86,7 +98,7 @@ router.get('/:id', (req, res) => {
 
 // edit route
 
-router.get('/edit/:id' , (req, res) => {
+router.get('/edit/:id', isAuthenticated, (req, res) => {
     Event.findOne({_id: req.params.id}, (err, event) => {
         // console.log(event);
         if (!err) {
@@ -104,7 +116,7 @@ router.get('/edit/:id' , (req, res) => {
 
 // update the form 
 
-router.post('/update', [
+router.post('/update', isAuthenticated, [
     check('title').isLength({min: 5}).withMessage('Title should be more than 5 characters'),
     check('description').isLength({min: 5}).withMessage('Description should be more than 5 characters'),
     check('location').isLength({min: 5}).withMessage('Location should be more than 5 characters'),
@@ -141,7 +153,7 @@ const errors = validationResult(req);
 
 // delete event 
 
-router.delete('/delete/:id', (req, res) => {
+router.delete('/delete/:id', isAuthenticated, (req, res) => {
     // console.log(req.params.id);
     // res.json("ok");
     let query = {_id: req.params.id};
