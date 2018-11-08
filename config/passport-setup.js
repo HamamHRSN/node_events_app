@@ -40,6 +40,7 @@ passport.use('local.signup', new localStrategy({
                 let newUser = new User();
                 newUser.email = req.body.email;
                 newUser.password = newUser.hashPassword(req.body.password);
+                newUser.avatar = "profile.png"
                 newUser.save((err, user) => {
                     if (!err) {
                       return done(null, user, req.flash('success', 'Your register is success..'));  

@@ -1,6 +1,7 @@
 const express = require('express');
 const {check, validationResult } = require('express-validator/check');
 const moment = require('moment');
+const multer = require('multer');
 const router = express.Router();
 const Event = require('../models/Event');
 
@@ -16,30 +17,57 @@ isAuthenticated = (req, res, next) => {
 };
 
 moment().format();
-// route to home events
-router.get('/', (req, res) => {
-//   res.send('This is events router page');
-Event.find({}, (err, events) => {
-    // res.json(events);
-    let chunk = [];
-    let chunkSize = 3;
-    for (let i = 0; i < events.length; i+=chunkSize) {
-        chunk.push(events.slice(i, chunkSize + i));
-    }
-    // res.json(chunk);
-    res.render('event/index', {
-        chunk: chunk,
-        message: req.flash('info')
-    });
-});
-});
 
 // route to create events
 router.get('/create', isAuthenticated, (req, res) => {
-   res.render('event/create', {
-       errors: req.flash('errors')
-   });
+    res.render('event/create', {
+        errors: req.flash('errors')
+    });
+ });
+
+
+// route to home events
+router.get('/:pageNum?', (req, res) => {
+    let pageNum = 1;
+    if (req.params.pageNum) {
+        pageNum = parseInt(req.params.pageNum);
+    }
+    if (req.params.pageNum == 0) {
+        pageNum = 1;
+    }
+
+    let q = {
+        skip: 5 * (pageNum - 1),
+        limit: 5
+    }
+    // find total documents
+    let totalDocs = 0;
+    Event.countDocuments({}, (err, total) => {
+
+    }).then((response) => {
+        totalDocs = parseInt(response);
+        // console.log(response);
+        Event.find({},{},q, (err, events) => {
+            // res.json(events);
+            let chunk = [];
+            let chunkSize = 3;
+            for (let i = 0; i < events.length; i+=chunkSize) {
+                chunk.push(events.slice(i, chunkSize + i));
+            }
+            // res.json(chunk);
+            res.render('event/index', {
+                chunk: chunk,
+                message: req.flash('info'),
+                total: parseInt(totalDocs),
+                pageNum: pageNum
+            });
+         });
+    });
+//   res.send('This is events router page');
+
 });
+
+
 
 // route to create events post
 router.post('/create', [
@@ -80,7 +108,7 @@ router.post('/create', [
  });
 
 // show single event
-router.get('/:id', (req, res) => {
+router.get('/show/:id', (req, res) => {
 // console.log(req.params.id);
     Event.findOne({_id: req.params.id}, (err, event) => {
         // console.log(event);
